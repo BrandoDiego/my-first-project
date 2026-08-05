@@ -9,9 +9,9 @@ project that's more than a toy — something I'd actually use while studying, an
 that has room to grow feature-by-feature so I can track my progress through commits.
 
 ## Features
-- [ ] 25-minute countdown timer
-- [ ] Start / Pause / Reset controls
-- [ ] Auto-switching between work and break periods
+- [x] 25-minute countdown timer
+- [x] Start / Pause / Reset controls
+- [x] Auto-switching between work and break periods
 - [ ] Visual progress indicator
 - [ ] Saved settings via localStorage
 - [ ] Stretch: notifications, sound alerts, session stats
