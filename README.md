@@ -1,54 +1,33 @@
-# my-first-project
-# Planning: Pomodoro Timer
+# Pomodoro Timer
 
-## 1. Problem & Purpose
-A simple web app that helps me (a student) manage study sessions using the Pomodoro
-technique: work in focused intervals, then rest, then repeat.
+A simple Pomodoro-technique study timer, built as a beginner project to practice
+JavaScript state/logic/UI separation and get comfortable with Git/GitHub workflow.
 
-**Who is it for?** Me, primarily — for studying and doing school/coding work.
+## Why I built this
+As a Grade XII Software Development (Vocational) student, I wanted a first GitHub
+project that's more than a toy — something I'd actually use while studying, and
+that has room to grow feature-by-feature so I can track my progress through commits.
 
-**What does "done" look like for v1?** A working countdown timer with start, pause,
-and reset that cycles between a work period and a break period.
+## Features
+- [ ] 25-minute countdown timer
+- [ ] Start / Pause / Reset controls
+- [ ] Auto-switching between work and break periods
+- [ ] Visual progress indicator
+- [ ] Saved settings via localStorage
+- [ ] Stretch: notifications, sound alerts, session stats
 
-## 2. Architecture (Layers, not features)
+## Tech Stack
+- HTML
+- CSS
+- Vanilla JavaScript
 
-| Layer | Responsibility | Example |
-|---|---|---|
-| **State** | What data the app tracks | `timeRemaining`, `mode` ("work"/"break"), `isRunning`, `sessionCount` |
-| **Logic** | How state changes over time | countdown tick, switching mode when timer hits 0 |
-| **UI** | Reflects state, contains no logic | renders time left, changes button text/color based on state |
-| **Persistence** (later) | Saves data across refreshes | `localStorage` for settings & session count |
+## Status
+🚧 In progress — see [PLANNING.md](./PLANNING.md) for the full roadmap.
 
-Rule of thumb: UI code should never *decide* anything — it should only *display*
-what state/logic already decided.
+## Getting Started
+1. Clone this repo
+2. Open `index.html` in your browser
+3. That's it — no build tools required
 
-## 3. Versioned Roadmap
-
-- **v0.1 — MVP**
-  25-minute countdown. Start / Pause / Reset buttons. No breaks yet.
-
-- **v0.2 — Work/Break Cycle**
-  After work period ends, auto-switch to a short break, then back to work.
-
-- **v0.3 — Visual Polish**
-  Progress bar or circular timer. Different colors for work vs. break mode.
-
-- **v0.4 — Persistence**
-  Remember custom durations and session count using `localStorage`.
-
-- **v0.5+ — Stretch Goals**
-  Browser notifications, sound alert on session end, session history/stats,
-  linked task list.
-
-## 4. Commit Strategy
-Commit at the end of each version above (or smaller logical chunks within a
-version). Use messages like:
-```
-feat: add basic countdown logic (v0.1)
-feat: add work/break auto-switch (v0.2)
-style: add progress bar and mode colors (v0.3)
-```
-
-## 5. Tech Stack
-- HTML / CSS / Vanilla JavaScript (no framework needed for this scope)
-- `localStorage` for persistence (v0.4+)
+## License
+MIT
