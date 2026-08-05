@@ -1,0 +1,11 @@
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE folders
+.vscode/
+.idea/
+
+# In case you add tooling later (npm, bundlers, etc.)
+node_modules/
+*.log

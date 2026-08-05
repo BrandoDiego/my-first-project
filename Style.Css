@@ -6,61 +6,91 @@
   --color-tomato: #e8532e;
   --color-tomato-hover: #f26644;
   --color-moss: #7fa66b;
+  --color-moss-hover: #8fb87c;
 
   --font-display: "Fraunces", serif;
   --font-ui: "Space Grotesk", sans-serif;
 }
 
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-ui);
 }
 
 .timer-card {
-  width: min(100%, 420px);
-  margin: 1rem;
-
   background: var(--color-surface);
   border-radius: 24px;
   padding: 3rem 3.5rem;
-
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 
 .eyebrow {
   margin: 0 0 1.5rem;
-
   font-size: 0.75rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-
   color: var(--color-moss);
 }
 
-.time-display {
-  margin: 0 0 2.5rem;
+/* ============================
+   PROGRESS RING
+   The SVG circle sits behind the time text. Both are centered
+   in the same box using absolute positioning, so they stack.
+   ============================ */
+.ring-wrap {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin: 0 auto 2rem;
+}
 
+.progress-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* so progress starts at 12 o'clock, not 3 o'clock */
+}
+
+.ring-track {
+  fill: none;
+  stroke: rgba(242, 237, 225, 0.08);
+  stroke-width: 8;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: var(--color-tomato);
+  stroke-width: 8;
+  stroke-linecap: round;
+  /* stroke-dasharray and stroke-dashoffset are set from script.js,
+     since they depend on the radius and time remaining (real state) */
+  transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+}
+
+body[data-mode="break"] .ring-progress {
+  stroke: var(--color-moss);
+}
+
+.time-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 600;
-  font-size: clamp(3.5rem, 10vw, 6rem);
-  line-height: 1;
-
+  font-size: clamp(2.75rem, 8vw, 3.75rem);
   font-variant-numeric: tabular-nums;
   color: var(--color-text);
 }
@@ -75,17 +105,11 @@ body {
   border: none;
   border-radius: 999px;
   padding: 0.75rem 1.75rem;
-
   font-family: var(--font-ui);
   font-size: 0.95rem;
   font-weight: 500;
-
   cursor: pointer;
-
-  transition:
-    transform 0.15s ease,
-    background 0.15s ease,
-    color 0.15s ease,
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease,
     border-color 0.15s ease;
 }
 
@@ -118,18 +142,87 @@ body {
   border-color: var(--color-text);
 }
 
-@media (max-width: 480px) {
-  .timer-card {
-    padding: 2.5rem 1.75rem;
-  }
+body[data-mode="break"] .btn-primary {
+  background: var(--color-moss);
+}
+
+body[data-mode="break"] .btn-primary:hover {
+  background: var(--color-moss-hover);
+}
+
+.session-count {
+  margin: 1.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* ============================
+   SETTINGS PANEL
+   ============================ */
+.settings-toggle {
+  margin-top: 1.5rem;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.settings-toggle:hover {
+  color: var(--color-text);
+}
+
+.settings-panel {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* The native `hidden` attribute loses to author CSS of equal
+   specificity, so this rule has to be explicit or the panel
+   would stay visible even when "hidden" is set. */
+.settings-panel[hidden] {
+  display: none;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.settings-field input {
+  width: 4.5rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--color-bg);
+  border: 1px solid rgba(242, 237, 225, 0.15);
+  border-radius: 8px;
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+}
+
+.settings-field input:focus-visible {
+  outline: 2px solid var(--color-moss);
+  outline-offset: 2px;
+}
+
+.settings-field input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn {
+  .btn,
+  .ring-progress {
     transition: none;
-  }
-
-  .btn:hover {
-    transform: none;
   }
 }
