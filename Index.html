@@ -19,114 +19,183 @@
     <link rel="stylesheet" href="style.css" />
   </head>
 
-  <body data-mode="work">
+  <body data-mode="work" data-theme="dark">
     <div class="background" aria-hidden="true">
       <div class="orb orb-one"></div>
       <div class="orb orb-two"></div>
     </div>
 
     <main class="page">
-      <section class="timer-card" aria-label="Pomodoro timer">
-        <header class="timer-header">
+      <div class="app-shell">
+        <header class="app-header">
           <p class="brand">Pomodoro</p>
 
-          <p id="modeLabel" class="eyebrow">
-            Focus Session
-          </p>
+          <div class="toolbar" role="toolbar" aria-label="App controls">
+            <button
+              id="themeToggle"
+              class="icon-btn"
+              type="button"
+              aria-label="Toggle light or dark mode"
+            >
+              🌙
+            </button>
+
+            <button
+              id="focusModeToggle"
+              class="icon-btn"
+              type="button"
+              aria-label="Toggle focus mode"
+            >
+              🎯
+            </button>
+
+            <button
+              id="notificationToggle"
+              class="icon-btn"
+              type="button"
+              aria-label="Toggle notifications"
+            >
+              🔕
+            </button>
+
+            <button
+              id="soundToggle"
+              class="icon-btn"
+              type="button"
+              aria-label="Toggle sound"
+            >
+              🔇
+            </button>
+          </div>
         </header>
 
-        <div class="ring-wrap">
-          <svg
-            class="progress-ring"
-            viewBox="0 0 200 200"
-            aria-hidden="true"
-          >
-            <circle
-              class="ring-track"
-              cx="100"
-              cy="100"
-              r="90"
-            ></circle>
+        <section class="timer-card" aria-label="Pomodoro timer">
+          <header class="timer-header">
+            <p class="eyebrow" id="modeLabel">Focus Session</p>
+          </header>
 
-            <circle
-              id="ringProgress"
-              class="ring-progress"
-              cx="100"
-              cy="100"
-              r="90"
-            ></circle>
-          </svg>
+          <div class="ring-wrap">
+            <svg
+              class="progress-ring"
+              viewBox="0 0 200 200"
+              aria-hidden="true"
+            >
+              <circle
+                class="ring-track"
+                cx="100"
+                cy="100"
+                r="90"
+              ></circle>
 
-          <p
-            id="timeDisplay"
-            class="time-display"
-            role="timer"
-            aria-live="off"
-          >
-            25:00
+              <circle
+                id="ringProgress"
+                class="ring-progress"
+                cx="100"
+                cy="100"
+                r="90"
+              ></circle>
+            </svg>
+
+            <p
+              id="timeDisplay"
+              class="time-display"
+              role="timer"
+              aria-live="off"
+            >
+              25:00
+            </p>
+          </div>
+
+          <div class="controls">
+            <button
+              id="startPauseBtn"
+              class="btn btn-primary"
+              type="button"
+            >
+              Start
+            </button>
+
+            <button
+              id="resetBtn"
+              class="btn btn-secondary"
+              type="button"
+            >
+              Reset
+            </button>
+          </div>
+
+          <p id="sessionCount" class="session-count">
+            Sessions completed: 0
           </p>
-        </div>
-
-        <div class="controls">
-          <button
-            id="startPauseBtn"
-            class="btn btn-primary"
-            type="button"
-          >
-            Start
-          </button>
 
           <button
-            id="resetBtn"
-            class="btn btn-secondary"
+            id="settingsToggle"
+            class="settings-toggle"
             type="button"
+            aria-expanded="false"
+            aria-controls="settingsPanel"
           >
-            Reset
+            Settings
           </button>
-        </div>
 
-        <p id="sessionCount" class="session-count">
-          Sessions completed: 0
-        </p>
+          <section
+            id="settingsPanel"
+            class="settings-panel"
+            hidden
+          >
+            <label class="settings-field">
+              <span>Work (min)</span>
+              <input
+                id="workInput"
+                type="number"
+                min="1"
+                max="90"
+                value="25"
+              />
+            </label>
 
-        <button
-          id="settingsToggle"
-          class="settings-toggle"
-          type="button"
-          aria-expanded="false"
-          aria-controls="settingsPanel"
-        >
-          Settings
-        </button>
+            <label class="settings-field">
+              <span>Break (min)</span>
+              <input
+                id="breakInput"
+                type="number"
+                min="1"
+                max="30"
+                value="5"
+              />
+            </label>
+          </section>
 
-        <section
-          id="settingsPanel"
-          class="settings-panel"
-          hidden
-        >
-          <label class="settings-field">
-            <span>Work (min)</span>
-            <input
-              id="workInput"
-              type="number"
-              min="1"
-              max="90"
-              value="25"
-            />
-          </label>
-
-          <label class="settings-field">
-            <span>Break (min)</span>
-            <input
-              id="breakInput"
-              type="number"
-              min="1"
-              max="30"
-              value="5"
-            />
-          </label>
+          <p class="shortcut-hint">
+            Space = start/pause • R = reset • S = settings • F = focus • D = theme
+          </p>
         </section>
-      </section>
+
+        <section class="dashboard" aria-label="Statistics">
+          <div class="stats-grid">
+            <article class="stat-card">
+              <span class="stat-label">Today</span>
+              <strong id="todayCount">0</strong>
+            </article>
+
+            <article class="stat-card">
+              <span class="stat-label">Streak</span>
+              <strong id="streakCount">0</strong>
+            </article>
+
+            <article class="stat-card">
+              <span class="stat-label">Total</span>
+              <strong id="totalCount">0</strong>
+            </article>
+          </div>
+
+          <article class="history-card">
+            <h2>Session history</h2>
+
+            <ul id="historyList" class="history-list"></ul>
+          </article>
+        </section>
+      </div>
     </main>
 
     <script src="script.js"></script>

@@ -2,7 +2,7 @@
 STATE
 ============================ */
 
-const STORAGE_KEY = "pomodoroSettings";
+const STORAGE_KEY = "pomodoroApp.v1.1";
 
 const RING_RADIUS = 90;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -14,7 +14,18 @@ let mode = "work";
 let timeRemaining = workDuration;
 let isRunning = false;
 let intervalId = null;
+
 let completedSessions = 0;
+let sessions = [];
+
+let settings = {
+  theme: "dark",
+  focusMode: false,
+  notificationsEnabled: false,
+  soundEnabled: false
+};
+
+let audioContext = null;
 
 /* ============================
 DOM REFERENCES
@@ -31,6 +42,16 @@ const settingsPanel = document.getElementById("settingsPanel");
 const workInput = document.getElementById("workInput");
 const breakInput = document.getElementById("breakInput");
 
+const themeToggle = document.getElementById("themeToggle");
+const focusModeToggle = document.getElementById("focusModeToggle");
+const notificationToggle = document.getElementById("notificationToggle");
+const soundToggle = document.getElementById("soundToggle");
+
+const todayCountEl = document.getElementById("todayCount");
+const streakCountEl = document.getElementById("streakCount");
+const totalCountEl = document.getElementById("totalCount");
+const historyList = document.getElementById("historyList");
+
 /* ============================
 HELPERS
 ============================ */
@@ -43,11 +64,19 @@ function getDurationForMode(currentMode) {
   return currentMode === "work" ? workDuration : breakDuration;
 }
 
+function isSameDay(dateA, dateB) {
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
+}
+
 /* ============================
 PERSISTENCE
 ============================ */
 
-function loadSettings() {
+function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
 
   if (!saved) {
@@ -58,40 +87,294 @@ function loadSettings() {
     const data = JSON.parse(saved);
 
     if (Number.isFinite(data.workDuration)) {
-      workDuration = clamp(data.workDuration, 60, 90 * 60);
+      workDuration = data.workDuration;
     }
 
     if (Number.isFinite(data.breakDuration)) {
-      breakDuration = clamp(data.breakDuration, 60, 30 * 60);
+      breakDuration = data.breakDuration;
     }
 
     if (Number.isFinite(data.completedSessions)) {
-      completedSessions = Math.max(0, Math.floor(data.completedSessions));
+      completedSessions = data.completedSessions;
+    }
+
+    if (Array.isArray(data.sessions)) {
+      sessions = data.sessions;
+    }
+
+    if (data.settings) {
+      settings = {
+        ...settings,
+        ...data.settings
+      };
     }
   } catch (error) {
-    console.warn("Could not load saved settings, using defaults.", error);
+    console.warn("Could not load saved state, using defaults.", error);
   }
+
+  workDuration = clamp(workDuration, 60, 90 * 60);
+  breakDuration = clamp(breakDuration, 60, 30 * 60);
 }
 
-function saveSettings() {
+function saveState() {
   const data = {
     workDuration,
     breakDuration,
-    completedSessions
+    completedSessions,
+    sessions,
+    settings
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
 /* ============================
-LOGIC
+THEME / FOCUS / NOTIFICATIONS / SOUND
+============================ */
+
+function applyTheme() {
+  document.body.dataset.theme = settings.theme;
+  themeToggle.textContent = settings.theme === "dark" ? "🌙" : "☀️";
+  themeToggle.classList.toggle("active", settings.theme === "light");
+}
+
+function toggleTheme() {
+  settings.theme = settings.theme === "dark" ? "light" : "dark";
+  applyTheme();
+  saveState();
+}
+
+function applyFocusMode() {
+  document.body.classList.toggle("focus-mode", settings.focusMode);
+  focusModeToggle.classList.toggle("active", settings.focusMode);
+}
+
+function toggleFocusMode() {
+  settings.focusMode = !settings.focusMode;
+  applyFocusMode();
+  saveState();
+}
+
+function applyNotificationToggle() {
+  notificationToggle.classList.toggle(
+    "active",
+    settings.notificationsEnabled
+  );
+
+  notificationToggle.textContent = settings.notificationsEnabled
+    ? "🔔"
+    : "🔕";
+}
+
+async function toggleNotifications() {
+  if (!settings.notificationsEnabled) {
+    if (!("Notification" in window)) {
+      alert("Notifications are not supported in this browser.");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+
+    if (permission === "granted") {
+      settings.notificationsEnabled = true;
+      showNotification(
+        "Notifications enabled",
+        "Pomodoro alerts are turned on."
+      );
+    } else {
+      settings.notificationsEnabled = false;
+    }
+  } else {
+    settings.notificationsEnabled = false;
+  }
+
+  applyNotificationToggle();
+  saveState();
+}
+
+function showNotification(title, body) {
+  if (
+    settings.notificationsEnabled &&
+    "Notification" in window &&
+    Notification.permission === "granted"
+  ) {
+    new Notification(title, { body });
+  }
+}
+
+function applySoundToggle() {
+  soundToggle.classList.toggle("active", settings.soundEnabled);
+  soundToggle.textContent = settings.soundEnabled ? "🔊" : "🔇";
+}
+
+function toggleSound() {
+  settings.soundEnabled = !settings.soundEnabled;
+
+  if (settings.soundEnabled) {
+    playBeep();
+  }
+
+  applySoundToggle();
+  saveState();
+}
+
+function ensureAudioContext() {
+  if (!audioContext) {
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextClass) {
+      return null;
+    }
+
+    audioContext = new AudioContextClass();
+  }
+
+  if (audioContext.state === "suspended") {
+    audioContext.resume();
+  }
+
+  return audioContext;
+}
+
+function playBeep() {
+  if (!settings.soundEnabled) {
+    return;
+  }
+
+  try {
+    const ctx = ensureAudioContext();
+
+    if (!ctx) {
+      return;
+    }
+
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.55);
+  } catch (error) {
+    console.warn("Sound could not play.", error);
+  }
+}
+
+/* ============================
+SESSION LOGGING / STATS
+============================ */
+
+function logSession() {
+  sessions.push({
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    mode: "work",
+    duration: workDuration
+  });
+
+  if (sessions.length > 100) {
+    sessions = sessions.slice(-100);
+  }
+}
+
+function getTodayCount() {
+  const now = new Date();
+
+  return sessions.filter((session) =>
+    isSameDay(new Date(session.timestamp), now)
+  ).length;
+}
+
+function getStreak() {
+  const sessionDays = new Set(
+    sessions.map((session) => new Date(session.timestamp).toDateString())
+  );
+
+  let streak = 0;
+  const checkDate = new Date();
+
+  if (!sessionDays.has(checkDate.toDateString())) {
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  while (sessionDays.has(checkDate.toDateString())) {
+    streak += 1;
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function updateStats() {
+  todayCountEl.textContent = getTodayCount();
+  streakCountEl.textContent = getStreak();
+  totalCountEl.textContent = Math.max(sessions.length, completedSessions);
+}
+
+function renderHistory() {
+  historyList.innerHTML = "";
+
+  const recentSessions = sessions.slice(-8).reverse();
+
+  if (recentSessions.length === 0) {
+    const emptyItem = document.createElement("li");
+    emptyItem.className = "history-item history-empty";
+    emptyItem.textContent = "No completed sessions yet.";
+    historyList.appendChild(emptyItem);
+    return;
+  }
+
+  recentSessions.forEach((session) => {
+    const date = new Date(session.timestamp);
+
+    const listItem = document.createElement("li");
+    listItem.className = "history-item";
+    listItem.textContent = `${date.toLocaleDateString()} • ${date.toLocaleTimeString(
+      [],
+      {
+        hour: "2-digit",
+        minute: "2-digit"
+      }
+    )} • ${Math.round(session.duration / 60)} min focus`;
+
+    historyList.appendChild(listItem);
+  });
+}
+
+/* ============================
+TIMER LOGIC
 ============================ */
 
 function switchMode() {
   if (mode === "work") {
-    completedSessions++;
+    completedSessions += 1;
+    logSession();
+
+    showNotification(
+      "Focus session complete",
+      "Good work. Time for a break."
+    );
+
+    playBeep();
+
     mode = "break";
   } else {
+    showNotification(
+      "Break complete",
+      "Ready for the next focus session?"
+    );
+
+    playBeep();
+
     mode = "work";
   }
 
@@ -99,7 +382,9 @@ function switchMode() {
 
   updateModeUI();
   updateSessionCount();
-  saveSettings();
+  updateStats();
+  renderHistory();
+  saveState();
 }
 
 function tick() {
@@ -170,7 +455,7 @@ function applySettingsFromInputs() {
 
   updateDisplay();
   updateRing();
-  saveSettings();
+  saveState();
 }
 
 /* ============================
@@ -222,17 +507,16 @@ function updateRing() {
 }
 
 function toggleSettingsPanel() {
-  const isHidden = settingsPanel.hidden;
+  settingsPanel.hidden = !settingsPanel.hidden;
 
-  if (isHidden) {
-    settingsPanel.hidden = false;
-    settingsToggle.setAttribute("aria-expanded", "true");
-    settingsToggle.textContent = "Hide settings";
-  } else {
-    settingsPanel.hidden = true;
-    settingsToggle.setAttribute("aria-expanded", "false");
-    settingsToggle.textContent = "Settings";
-  }
+  settingsToggle.setAttribute(
+    "aria-expanded",
+    String(!settingsPanel.hidden)
+  );
+
+  settingsToggle.textContent = settingsPanel.hidden
+    ? "Settings"
+    : "Hide settings";
 }
 
 /* ============================
@@ -245,11 +529,60 @@ settingsToggle.addEventListener("click", toggleSettingsPanel);
 workInput.addEventListener("change", applySettingsFromInputs);
 breakInput.addEventListener("change", applySettingsFromInputs);
 
+themeToggle.addEventListener("click", toggleTheme);
+focusModeToggle.addEventListener("click", toggleFocusMode);
+notificationToggle.addEventListener("click", toggleNotifications);
+soundToggle.addEventListener("click", toggleSound);
+
+document.addEventListener("keydown", (event) => {
+  const target = event.target;
+
+  if (
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.tagName === "SELECT"
+  ) {
+    return;
+  }
+
+  if (event.metaKey || event.ctrlKey || event.altKey) {
+    return;
+  }
+
+  if (event.code === "Space") {
+    event.preventDefault();
+    toggleTimer();
+    return;
+  }
+
+  const key = event.key.toLowerCase();
+
+  if (key === "r") {
+    resetTimer();
+  }
+
+  if (key === "s") {
+    toggleSettingsPanel();
+  }
+
+  if (key === "f") {
+    toggleFocusMode();
+  }
+
+  if (key === "d") {
+    toggleTheme();
+  }
+
+  if (key === "n") {
+    toggleNotifications();
+  }
+});
+
 /* ============================
 INITIAL LOAD
 ============================ */
 
-loadSettings();
+loadState();
 
 timeRemaining = getDurationForMode(mode);
 
@@ -258,9 +591,16 @@ ringProgress.style.strokeDasharray = RING_CIRCUMFERENCE;
 workInput.value = workDuration / 60;
 breakInput.value = breakDuration / 60;
 
+applyTheme();
+applyFocusMode();
+applyNotificationToggle();
+applySoundToggle();
+
 updateDisplay();
 updateModeUI();
 updateSessionCount();
 updateRing();
 updateControls();
 updateSettingsAvailability();
+updateStats();
+renderHistory();

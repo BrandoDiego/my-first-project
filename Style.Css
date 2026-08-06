@@ -20,6 +20,17 @@
   --shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
 }
 
+body[data-theme="light"] {
+  --bg: #f3eee3;
+  --surface: rgba(16, 16, 24, 0.06);
+  --surface-border: rgba(16, 16, 24, 0.1);
+  --text: #151320;
+  --muted: rgba(21, 19, 32, 0.65);
+  --ring-track: rgba(21, 19, 32, 0.12);
+  --accent-glow: rgba(255, 92, 57, 0.18);
+  --shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
+}
+
 body[data-mode="break"] {
   --accent: #5ad28d;
   --accent-hover: #79dd9f;
@@ -83,6 +94,10 @@ body {
   pointer-events: none;
 }
 
+body[data-theme="light"] .orb {
+  opacity: 0.3;
+}
+
 .orb-one {
   width: 320px;
   height: 320px;
@@ -105,9 +120,77 @@ body {
   place-items: center;
 }
 
+.app-shell {
+  width: min(100%, 860px);
+  display: grid;
+  gap: 1.5rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 0.5rem;
+}
+
+.brand {
+  margin: 0;
+
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+
+  color: var(--muted);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  width: 42px;
+  height: 42px;
+
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  display: grid;
+  place-items: center;
+
+  font-size: 1rem;
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px);
+}
+
+.icon-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.icon-btn.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
 .timer-card {
   position: relative;
   width: min(100%, 500px);
+  margin: 0 auto;
 
   padding: clamp(2rem, 4vw, 3.5rem);
 
@@ -174,17 +257,6 @@ body {
   gap: 1rem;
   justify-items: center;
   margin-bottom: 1rem;
-}
-
-.brand {
-  margin: 0;
-
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.32em;
-
-  color: var(--muted);
 }
 
 .eyebrow {
@@ -413,6 +485,11 @@ body {
   text-align: center;
 }
 
+body[data-theme="light"] .settings-field input {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(21, 19, 32, 0.15);
+}
+
 .settings-field input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -421,6 +498,105 @@ body {
 .settings-field input:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.shortcut-hint {
+  margin: 1.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.dashboard {
+  width: min(100%, 860px);
+  margin: 0 auto;
+
+  display: grid;
+  gap: 1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.stat-card,
+.history-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 24px;
+  padding: 1.25rem;
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.stat-card {
+  display: grid;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.stat-card strong {
+  font-size: 1.8rem;
+}
+
+.history-card h2 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  display: grid;
+  gap: 0.65rem;
+}
+
+.history-item {
+  padding: 0.75rem 0.9rem;
+  border-radius: 16px;
+
+  background: rgba(0, 0, 0, 0.12);
+
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+body[data-theme="light"] .history-item {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.history-empty {
+  color: var(--muted);
+}
+
+body.focus-mode .dashboard,
+body.focus-mode .settings-toggle,
+body.focus-mode .settings-panel,
+body.focus-mode .session-count,
+body.focus-mode .shortcut-hint {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .app-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 560px) {
@@ -441,7 +617,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .btn,
-  .ring-progress {
+  .ring-progress,
+  .icon-btn {
     transition: none;
   }
 }
