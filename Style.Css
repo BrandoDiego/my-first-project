@@ -1,7 +1,5 @@
 :root {
   --bg: #101018;
-  --bg-soft: #171422;
-
   --surface: rgba(255, 255, 255, 0.08);
   --surface-border: rgba(255, 255, 255, 0.12);
 
@@ -41,6 +39,7 @@ html {
 
 body {
   margin: 0;
+
   min-height: 100vh;
   min-height: 100svh;
 
@@ -73,6 +72,7 @@ body {
   inset: 0;
   z-index: -1;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .orb {
@@ -80,7 +80,7 @@ body {
   border-radius: 50%;
   filter: blur(90px);
   opacity: 0.55;
-  animation: float 16s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
 .orb-one {
@@ -97,31 +97,6 @@ body {
   background: rgba(255, 255, 255, 0.12);
   bottom: -70px;
   right: -40px;
-  animation-delay: -4s;
-}
-
-.grid-lines {
-  position: absolute;
-  inset: 0;
-
-  background-image:
-    linear-gradient(
-      rgba(255, 255, 255, 0.05) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.05) 1px,
-      transparent 1px
-    );
-
-  background-size: 56px 56px;
-
-  mask-image: radial-gradient(
-    circle at center,
-    black 0%,
-    transparent 78%
-  );
 }
 
 .page {
@@ -169,6 +144,8 @@ body {
     rgba(255, 255, 255, 0.35),
     transparent
   );
+
+  pointer-events: none;
 }
 
 .timer-card::after {
@@ -295,6 +272,9 @@ body {
 }
 
 .controls {
+  position: relative;
+  z-index: 2;
+
   display: flex;
   justify-content: center;
   gap: 0.9rem;
@@ -363,6 +343,9 @@ body {
 }
 
 .settings-toggle {
+  position: relative;
+  z-index: 2;
+
   margin-top: 1.4rem;
 
   background: none;
@@ -385,6 +368,9 @@ body {
 }
 
 .settings-panel {
+  position: relative;
+  z-index: 2;
+
   margin-top: 1.25rem;
 
   display: grid;
@@ -437,16 +423,6 @@ body {
   cursor: not-allowed;
 }
 
-@keyframes float {
-  from {
-    transform: translateY(0) scale(1);
-  }
-
-  to {
-    transform: translateY(28px) scale(1.08);
-  }
-}
-
 @media (max-width: 560px) {
   .timer-card {
     padding: 2.2rem 1.4rem;
@@ -464,10 +440,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .orb,
-  .ring-progress,
-  .btn {
-    animation: none;
+  .btn,
+  .ring-progress {
     transition: none;
   }
 }

@@ -1,6 +1,5 @@
 /* ============================
 STATE
-The single source of truth for the app.
 ============================ */
 
 const STORAGE_KEY = "pomodoroSettings";
@@ -46,7 +45,6 @@ function getDurationForMode(currentMode) {
 
 /* ============================
 PERSISTENCE
-Reads/writes the parts of STATE that should survive refresh.
 ============================ */
 
 function loadSettings() {
@@ -177,7 +175,6 @@ function applySettingsFromInputs() {
 
 /* ============================
 UI
-These functions only read state and update the page.
 ============================ */
 
 function formatTime(totalSeconds) {
