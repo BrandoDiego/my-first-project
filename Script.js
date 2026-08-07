@@ -604,3 +604,197 @@ updateControls();
 updateSettingsAvailability();
 updateStats();
 renderHistory();
+
+/* ============================
+TASK LIST — v1.2.1
+============================ */
+
+(function initTaskList() {
+  const TASKS_STORAGE_KEY = "pomodoroTasks.v1.2.1";
+
+  let tasks = [];
+
+  const taskForm = document.getElementById("taskForm");
+  const taskInput = document.getElementById("taskInput");
+  const taskList = document.getElementById("taskList");
+  const taskCount = document.getElementById("taskCount");
+  const taskEmptyState = document.getElementById("taskEmptyState");
+
+  // If the task list HTML is not present, do nothing.
+  if (!taskForm || !taskInput || !taskList || !taskCount || !taskEmptyState) {
+    return;
+  }
+
+  /* ----------------------------
+  HELPERS
+  ---------------------------- */
+
+  function createTaskId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+
+    return `task-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  /* ----------------------------
+  PERSISTENCE
+  ---------------------------- */
+
+  function loadTasks() {
+    const saved = localStorage.getItem(TASKS_STORAGE_KEY);
+
+    if (!saved) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(saved);
+
+      if (Array.isArray(parsed)) {
+        tasks = parsed;
+      }
+    } catch (error) {
+      console.warn("Could not load saved tasks, using defaults.", error);
+    }
+  }
+
+  function saveTasks() {
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+  }
+
+  /* ----------------------------
+  LOGIC
+  ---------------------------- */
+
+  function addTask(text) {
+    const trimmedText = text.trim();
+
+    if (!trimmedText) {
+      return;
+    }
+
+    tasks.unshift({
+      id: createTaskId(),
+      text: trimmedText,
+      completed: false,
+      createdAt: new Date().toISOString()
+    });
+
+    saveTasks();
+    renderTasks();
+  }
+
+  function toggleTask(id) {
+    tasks = tasks.map((task) => {
+      if (task.id === id) {
+        return {
+          ...task,
+          completed: !task.completed
+        };
+      }
+
+      return task;
+    });
+
+    saveTasks();
+    renderTasks();
+  }
+
+  function deleteTask(id) {
+    tasks = tasks.filter((task) => task.id !== id);
+
+    saveTasks();
+    renderTasks();
+  }
+
+  /* ----------------------------
+  UI
+  ---------------------------- */
+
+  function updateTaskCount() {
+    const openTasks = tasks.filter((task) => !task.completed).length;
+    const totalTasks = tasks.length;
+
+    taskCount.textContent = `${openTasks} open • ${totalTasks} total`;
+  }
+
+  function renderTasks() {
+    taskList.innerHTML = "";
+
+    updateTaskCount();
+
+    taskEmptyState.hidden = tasks.length > 0;
+
+    tasks.forEach((task) => {
+      const listItem = document.createElement("li");
+      listItem.className = task.completed
+        ? "task-item completed"
+        : "task-item";
+
+      const toggleButton = document.createElement("button");
+      toggleButton.type = "button";
+      toggleButton.className = "task-toggle";
+      toggleButton.dataset.id = task.id;
+      toggleButton.setAttribute(
+        "aria-label",
+        task.completed
+          ? "Mark task as not completed"
+          : "Mark task as completed"
+      );
+      toggleButton.textContent = task.completed ? "✓" : "";
+
+      const taskText = document.createElement("span");
+      taskText.className = "task-text";
+      taskText.textContent = task.text;
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "task-delete";
+      deleteButton.dataset.id = task.id;
+      deleteButton.setAttribute("aria-label", "Delete task");
+      deleteButton.textContent = "✕";
+
+      listItem.append(toggleButton, taskText, deleteButton);
+      taskList.appendChild(listItem);
+    });
+  }
+
+  /* ----------------------------
+  EVENT LISTENERS
+  ---------------------------- */
+
+  taskForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    addTask(taskInput.value);
+
+    taskInput.value = "";
+    taskInput.focus();
+  });
+
+  taskList.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-id]");
+
+    if (!button) {
+      return;
+    }
+
+    const id = button.dataset.id;
+
+    if (button.classList.contains("task-toggle")) {
+      toggleTask(id);
+    }
+
+    if (button.classList.contains("task-delete")) {
+      deleteTask(id);
+    }
+  });
+
+  /* ----------------------------
+  INITIAL LOAD
+  ---------------------------- */
+
+  loadTasks();
+  renderTasks();
+})();

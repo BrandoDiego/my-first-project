@@ -165,12 +165,43 @@
               />
             </label>
           </section>
+          
 
           <p class="shortcut-hint">
             Space = start/pause • R = reset • S = settings • F = focus • D = theme
           </p>
         </section>
+<section class="tasks-card" aria-label="Task list">
+  <div class="tasks-header">
+    <h2>Tasks</h2>
+    <p id="taskCount" class="task-count">0 open • 0 total</p>
+  </div>
 
+  <form id="taskForm" class="task-form">
+    <label for="taskInput" class="visually-hidden">
+      Add a task
+    </label>
+
+    <input
+      id="taskInput"
+      type="text"
+      placeholder="Add a task..."
+      autocomplete="off"
+      maxlength="120"
+      required
+    />
+
+    <button class="btn btn-primary" type="submit">
+      Add
+    </button>
+  </form>
+
+  <ul id="taskList" class="task-list"></ul>
+
+  <p id="taskEmptyState" class="task-empty" hidden>
+    No tasks yet. Add one above.
+  </p>
+</section>
         <section class="dashboard" aria-label="Statistics">
           <div class="stats-grid">
             <article class="stat-card">
