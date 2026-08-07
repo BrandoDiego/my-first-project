@@ -203,6 +203,33 @@
   </p>
 </section>
         <section class="dashboard" aria-label="Statistics">
+          <article class="goal-card" id="goalCard">
+  <div class="goal-header">
+    <h2>Daily goal</h2>
+    <p id="goalProgress" class="goal-progress">0 / 4 sessions</p>
+  </div>
+
+  <div
+    id="goalBar"
+    class="goal-bar"
+    role="progressbar"
+    aria-label="Daily goal progress"
+    aria-valuemin="0"
+    aria-valuemax="4"
+    aria-valuenow="0"
+  >
+    <div id="goalFill" class="goal-fill"></div>
+  </div>
+
+  <label class="goal-setting">
+    <span>Goal (sessions / day)</span>
+    <input id="goalInput" type="number" min="1" max="20" value="4" />
+  </label>
+
+  <p id="goalMessage" class="goal-message">
+    Stay consistent — you've got this.
+  </p>
+</article>
           <div class="stats-grid">
             <article class="stat-card">
               <span class="stat-label">Today</span>

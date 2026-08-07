@@ -798,3 +798,110 @@ TASK LIST — v1.2.1
   loadTasks();
   renderTasks();
 })();
+/* ============================
+DAILY GOAL — v1.2.2
+============================ */
+
+(function initDailyGoal() {
+  const GOAL_STORAGE_KEY = "pomodoroGoal.v1.2.2";
+
+  let dailyGoal = 4;
+
+  const goalCard = document.getElementById("goalCard");
+  const goalProgress = document.getElementById("goalProgress");
+  const goalBar = document.getElementById("goalBar");
+  const goalFill = document.getElementById("goalFill");
+  const goalInput = document.getElementById("goalInput");
+  const goalMessage = document.getElementById("goalMessage");
+
+  // If the goal HTML is not present, do nothing.
+  if (!goalCard || !goalProgress || !goalBar || !goalFill || !goalInput || !goalMessage) {
+    return;
+  }
+
+  /* ----------------------------
+  PERSISTENCE
+  ---------------------------- */
+
+  function loadGoal() {
+    const saved = localStorage.getItem(GOAL_STORAGE_KEY);
+
+    if (!saved) {
+      return;
+    }
+
+    const parsed = parseInt(saved, 10);
+
+    if (Number.isFinite(parsed)) {
+      dailyGoal = Math.min(Math.max(parsed, 1), 20);
+    }
+  }
+
+  function saveGoal() {
+    localStorage.setItem(GOAL_STORAGE_KEY, String(dailyGoal));
+  }
+
+  /* ----------------------------
+  UI
+  ---------------------------- */
+
+  function getTodaySessions() {
+    // Reuse the main app's stats function if available.
+    if (typeof getTodayCount === "function") {
+      return getTodayCount();
+    }
+
+    return 0;
+  }
+
+  function renderGoal() {
+    const today = getTodaySessions();
+    const complete = today >= dailyGoal;
+
+    goalProgress.textContent = `${today} / ${dailyGoal} sessions`;
+
+    const fraction = dailyGoal > 0 ? Math.min(today / dailyGoal, 1) : 0;
+    goalFill.style.width = `${fraction * 100}%`;
+
+    goalBar.setAttribute("aria-valuemax", String(dailyGoal));
+    goalBar.setAttribute("aria-valuenow", String(Math.min(today, dailyGoal)));
+
+    goalCard.classList.toggle("goal-complete", complete);
+
+    if (complete) {
+      goalMessage.textContent = "Goal complete! Amazing consistency. 🎉";
+    } else if (today > 0) {
+      goalMessage.textContent = "Nice progress — keep going.";
+    } else {
+      goalMessage.textContent = "Stay consistent — you've got this.";
+    }
+  }
+
+  /* ----------------------------
+  EVENT LISTENERS
+  ---------------------------- */
+
+  goalInput.addEventListener("change", () => {
+    const parsed = parseInt(goalInput.value, 10);
+
+    if (Number.isFinite(parsed)) {
+      dailyGoal = Math.min(Math.max(parsed, 1), 20);
+    }
+
+    goalInput.value = dailyGoal;
+
+    saveGoal();
+    renderGoal();
+  });
+
+  // Refresh whenever the timer finishes a session.
+  document.addEventListener("pomodoro:session", renderGoal);
+
+  /* ----------------------------
+  INITIAL LOAD
+  ---------------------------- */
+
+  loadGoal();
+  goalInput.value = dailyGoal;
+  renderGoal();
+})();
